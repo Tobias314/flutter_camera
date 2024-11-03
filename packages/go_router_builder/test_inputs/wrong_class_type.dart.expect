@@ -1,1 +1,0 @@
-The @TypedGoRoute annotation can only be applied to classes that extend or implement `GoRouteData`.

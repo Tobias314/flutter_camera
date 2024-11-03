@@ -1,5 +1,0 @@
-RouteBase get $statefulShellBranchWithObserversData =>
-    StatefulShellBranchData.$branch(
-      initialLocation: StatefulShellBranchWithObserversData.$initialLocation,
-      observers: StatefulShellBranchWithObserversData.$observers,
-    );

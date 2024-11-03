@@ -1,3 +1,0 @@
-RouteBase get $shellRouteBranchData => StatefulShellBranchData.$branch(
-      initialLocation: ShellRouteBranchData.$initialLocation,
-    );
