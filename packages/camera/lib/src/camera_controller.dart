@@ -10,8 +10,11 @@ import 'package:camera_platform_interface/camera_platform_interface.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:logger/logger.dart';
 
 import '../camera.dart';
+
+Logger logger = Logger();
 
 /// Signature for a callback receiving the a camera image.
 ///
@@ -255,7 +258,10 @@ class CameraController extends ValueNotifier<CameraValue> {
             fps: fps,
             videoBitrate: videoBitrate,
             audioBitrate: audioBitrate),
-        super(CameraValue.uninitialized(description));
+        super(CameraValue.uninitialized(description))
+        {
+        logger.d('CameraController initialized');
+        }
 
   /// The properties of the camera device controlled by this controller.
   CameraDescription get description => value.description;
