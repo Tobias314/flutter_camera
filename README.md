@@ -1,7 +1,6 @@
-# Flutter Packages
+# Flutter Camera
 
-[![Release Status](https://github.com/flutter/packages/actions/workflows/release.yml/badge.svg)](https://github.com/flutter/packages/actions/workflows/release.yml)
-[![Flutter CI Status](https://flutter-dashboard.appspot.com/api/public/build-status-badge?repo=packages)](https://flutter-dashboard.appspot.com/#/build?repo=packages)
+Attention: This is a fork of the original flutter packages repo but limited only to the flutter_camera plugin for some experimental modifications.
 
 This repo is a companion repo to the main [flutter repo](
 https://github.com/flutter/flutter). It contains the source code for Flutter's
