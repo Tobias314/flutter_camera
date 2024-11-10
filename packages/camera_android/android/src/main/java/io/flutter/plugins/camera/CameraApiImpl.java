@@ -180,6 +180,11 @@ final class CameraApiImpl implements Messages.CameraApi {
     camera.startVideoRecording(enableStream ? imageStreamChannel : null);
   }
 
+  @Override
+  public void startChunkableVideoRecording() {
+    camera.startChunkableVideoRecording();
+  }
+
   @NonNull
   @Override
   public String stopVideoRecording() {

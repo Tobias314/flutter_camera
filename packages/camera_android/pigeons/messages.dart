@@ -152,6 +152,10 @@ abstract class CameraApi {
   /// Starts recording a video on the camera with the given ID.
   void startVideoRecording(bool enableStream);
 
+   /// Starts recording a video on the camera with the given ID
+  ///  which allows for switching the video file while recording to allow for chunking
+  void startChunkableVideoRecording();
+
   /// Ends video recording on the camera with the given ID and returns the path
   /// to the resulting file.
   String stopVideoRecording();

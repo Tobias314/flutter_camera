@@ -8,17 +8,22 @@ import 'dart:math';
 import 'package:camera_platform_interface/camera_platform_interface.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:logger/logger.dart';
 import 'package:stream_transform/stream_transform.dart';
 
 import 'messages.g.dart';
 import 'type_conversion.dart';
 import 'utils.dart';
 
+Logger logger = Logger();
+
 /// The Android implementation of [CameraPlatform] that uses method channels.
 class AndroidCamera extends CameraPlatform {
   /// Creates a new [CameraPlatform] instance.
   AndroidCamera({@visibleForTesting CameraApi? hostApi})
-      : _hostApi = hostApi ?? CameraApi();
+      : _hostApi = hostApi ?? CameraApi(){
+        logger.d("Hello from AndroidCamera");
+      }
 
   /// Registers this class as the default instance of [CameraPlatform].
   static void registerWith() {
@@ -202,6 +207,12 @@ class AndroidCamera extends CameraPlatform {
       {Duration? maxVideoDuration}) async {
     // Ignore maxVideoDuration, as it is unimplemented and deprecated.
     return startVideoCapturing(VideoCaptureOptions(cameraId));
+  }
+
+    @override
+  Future<void> startChunkableVideoRecording(int cameraId) async {
+    // Ignore maxVideoDuration, as it is unimplemented and deprecated.
+    return _hostApi.startChunkableVideoRecording();
   }
 
   @override

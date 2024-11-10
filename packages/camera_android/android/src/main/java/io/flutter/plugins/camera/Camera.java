@@ -837,6 +837,20 @@ class Camera
     }
   }
 
+  public void startChunkableVideoRecording() {
+    prepareRecording();
+
+    initialCameraFacing = cameraProperties.getLensFacing();
+    recordingVideo = true;
+    try {
+      startCapture(true, false);
+    } catch (CameraAccessException e) {
+      recordingVideo = false;
+      captureFile = null;
+      throw new Messages.FlutterError("videoRecordingFailed", e.getMessage(), null);
+    }
+  }
+
   private void closeRenderer() {
     if (videoRenderer != null) {
       videoRenderer.close();
