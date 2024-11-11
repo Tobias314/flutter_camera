@@ -135,6 +135,8 @@ class Camera
   /** Holds the last known capture properties */
   private CameraCaptureProperties captureProps;
 
+  private VideoEncoder videoEncoder;
+
   Messages.Result<String> flutterResult;
 
   /** A CameraDeviceWrapper implementation that forwards calls to a CameraDevice. */
@@ -841,10 +843,26 @@ class Camera
     prepareRecording();
 
     initialCameraFacing = cameraProperties.getLensFacing();
+    //TODO: change to chunkable
     recordingVideo = true;
+    final File outputDir = applicationContext.getCacheDir();
     try {
-      startCapture(true, false);
+      captureFile = File.createTempFile("REC", ".mp4", outputDir);
+      videoEncoder = new VideoEncoder(captureFile);
+    } catch (IOException | SecurityException e) {
+      throw new Messages.FlutterError("cannotCreateFile", e.getMessage(), null);
+    }
+    try {
+      startCapture(false, true);
+      imageStreamReader.imageReader.setOnImageAvailableListener(
+              reader -> {
+        Image image = reader.acquireNextImage();
+        if (image == null) return;
+
+        onImageAvailable(image, captureProps, imageStreamSink);
+      });
     } catch (CameraAccessException e) {
+      //TODO: change to chunkable
       recordingVideo = false;
       captureFile = null;
       throw new Messages.FlutterError("videoRecordingFailed", e.getMessage(), null);
@@ -865,6 +883,33 @@ class Camera
     // Re-create autofocus feature so it's using continuous capture focus mode now.
     cameraFeatures.setAutoFocus(
         cameraFeatureFactory.createAutoFocusFeature(cameraProperties, false));
+    recordingVideo = false;
+    try {
+      closeRenderer();
+      captureSession.abortCaptures();
+      mediaRecorder.stop();
+    } catch (CameraAccessException | IllegalStateException e) {
+      // Ignore exceptions and try to continue (changes are camera session already aborted capture).
+    }
+    mediaRecorder.reset();
+    try {
+      startPreview();
+    } catch (CameraAccessException | IllegalStateException | InterruptedException e) {
+      throw new Messages.FlutterError("videoRecordingFailed", e.getMessage(), null);
+    }
+    String path = captureFile.getAbsolutePath();
+    captureFile = null;
+    return path;
+  }
+
+  public String stopChunkableVideoRecording() {
+    //TODO: change to chunkable
+    if (!recordingVideo) {
+      return "";
+    }
+    // Re-create autofocus feature so it's using continuous capture focus mode now.
+    cameraFeatures.setAutoFocus(
+            cameraFeatureFactory.createAutoFocusFeature(cameraProperties, false));
     recordingVideo = false;
     try {
       closeRenderer();

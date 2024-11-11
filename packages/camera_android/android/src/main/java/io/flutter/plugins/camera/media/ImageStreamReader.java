@@ -30,7 +30,7 @@ public class ImageStreamReader {
    */
   private final int dartImageFormat;
 
-  private final ImageReader imageReader;
+  public final ImageReader imageReader;
   private final ImageStreamReaderUtils imageStreamReaderUtils;
 
   /**
