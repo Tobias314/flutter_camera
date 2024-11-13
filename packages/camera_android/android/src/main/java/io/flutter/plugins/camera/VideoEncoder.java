@@ -66,7 +66,7 @@ public class VideoEncoder {
     private Queue<EncodedData> audioQueue = new LinkedList<>();
 
     // input queue for video, audio, and stop signals
-    private BlockingQueue<InputData> inputQueue = new LinkedBlockingQueue<>(5);
+    private BlockingQueue<InputData> inputQueue = new LinkedBlockingQueue<>(200);
 
     // signal encoding success or error
     private CompletableFuture<Void> processingResult;
