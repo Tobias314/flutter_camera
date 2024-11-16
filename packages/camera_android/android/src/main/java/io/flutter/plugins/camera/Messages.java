@@ -953,6 +953,9 @@ public class Messages {
      */
     @NonNull 
     String stopVideoRecording();
+    /** Ends chunkable video recording on the camera with the given ID. */
+    @NonNull 
+    String stopChunkableVideoRecording();
     /** Pauses video recording on the camera with the given ID. */
     void pauseVideoRecording();
     /** Resumes previously paused video recording on the camera with the given ID. */
@@ -1242,6 +1245,27 @@ public class Messages {
                 ArrayList<Object> wrapped = new ArrayList<>();
                 try {
                   String output = api.stopVideoRecording();
+                  wrapped.add(0, output);
+                }
+ catch (Throwable exception) {
+                  wrapped = wrapError(exception);
+                }
+                reply.reply(wrapped);
+              });
+        } else {
+          channel.setMessageHandler(null);
+        }
+      }
+      {
+        BasicMessageChannel<Object> channel =
+            new BasicMessageChannel<>(
+                binaryMessenger, "dev.flutter.pigeon.camera_android.CameraApi.stopChunkableVideoRecording" + messageChannelSuffix, getCodec());
+        if (api != null) {
+          channel.setMessageHandler(
+              (message, reply) -> {
+                ArrayList<Object> wrapped = new ArrayList<>();
+                try {
+                  String output = api.stopChunkableVideoRecording();
                   wrapped.add(0, output);
                 }
  catch (Throwable exception) {

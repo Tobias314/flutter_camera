@@ -191,6 +191,12 @@ final class CameraApiImpl implements Messages.CameraApi {
     return camera.stopVideoRecording();
   }
 
+  @NonNull
+  @Override
+  public String stopChunkableVideoRecording() {
+    return camera.stopChunkableVideoRecording();
+  }
+
   @Override
   public void pauseVideoRecording() {
     camera.pauseVideoRecording();

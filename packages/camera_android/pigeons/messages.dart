@@ -160,6 +160,9 @@ abstract class CameraApi {
   /// to the resulting file.
   String stopVideoRecording();
 
+  /// Ends chunkable video recording on the camera with the given ID.
+  String stopChunkableVideoRecording();
+
   /// Pauses video recording on the camera with the given ID.
   void pauseVideoRecording();
 

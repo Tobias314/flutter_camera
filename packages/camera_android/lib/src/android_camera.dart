@@ -232,6 +232,12 @@ class AndroidCamera extends CameraPlatform {
   }
 
   @override
+  Future<XFile> stopChunkableVideoRecording(int cameraId) async {
+    final String path = await _hostApi.stopChunkableVideoRecording();
+    return XFile(path);
+  }
+
+  @override
   Future<void> pauseVideoRecording(int cameraId) =>
       _hostApi.pauseVideoRecording();
 
