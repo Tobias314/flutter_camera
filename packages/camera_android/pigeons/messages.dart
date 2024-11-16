@@ -160,6 +160,9 @@ abstract class CameraApi {
   /// to the resulting file.
   String stopVideoRecording();
 
+  // Finishes up the current .mp4 file and starts a new one without stopping the recording
+  String chunkVideoRecording();
+
   /// Ends chunkable video recording on the camera with the given ID.
   String stopChunkableVideoRecording();
 

@@ -21,9 +21,9 @@ Logger logger = Logger();
 class AndroidCamera extends CameraPlatform {
   /// Creates a new [CameraPlatform] instance.
   AndroidCamera({@visibleForTesting CameraApi? hostApi})
-      : _hostApi = hostApi ?? CameraApi(){
-        logger.d("Hello from AndroidCamera");
-      }
+      : _hostApi = hostApi ?? CameraApi() {
+    logger.d("Hello from AndroidCamera");
+  }
 
   /// Registers this class as the default instance of [CameraPlatform].
   static void registerWith() {
@@ -209,7 +209,7 @@ class AndroidCamera extends CameraPlatform {
     return startVideoCapturing(VideoCaptureOptions(cameraId));
   }
 
-    @override
+  @override
   Future<void> startChunkableVideoRecording(int cameraId) async {
     // Ignore maxVideoDuration, as it is unimplemented and deprecated.
     return _hostApi.startChunkableVideoRecording();
@@ -223,6 +223,12 @@ class AndroidCamera extends CameraPlatform {
       _installStreamController().stream.listen(options.streamCallback);
       _startStreamListener();
     }
+  }
+
+  @override
+  Future<XFile> chunkVideoRecording(int cameraId) async {
+    final String path = await _hostApi.chunkVideoRecording();
+    return XFile(path);
   }
 
   @override

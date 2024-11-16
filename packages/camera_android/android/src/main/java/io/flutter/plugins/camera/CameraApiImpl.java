@@ -193,6 +193,12 @@ final class CameraApiImpl implements Messages.CameraApi {
 
   @NonNull
   @Override
+  public String chunkVideoRecording() {
+    return camera.chunkVideoRecording();
+  }
+
+  @NonNull
+  @Override
   public String stopChunkableVideoRecording() {
     return camera.stopChunkableVideoRecording();
   }

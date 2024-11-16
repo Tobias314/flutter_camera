@@ -165,7 +165,7 @@ class Camera
     private CameraCaptureProperties captureProps;
 
     private VideoEncoder videoEncoder;
-    private ImageReader videoEncoderImageReader;
+    private VideoFileWriter mCurrentVideoFileWriter;
 
     Messages.Result<String> flutterResult;
 
@@ -390,11 +390,6 @@ class Camera
                 resolutionFeature.getPreviewSize().getHeight(),
                 this.imageFormatGroup,
                 1);
-        videoEncoderImageReader = ImageReader.newInstance(
-                resolutionFeature.getPreviewSize().getWidth(),
-                resolutionFeature.getPreviewSize().getHeight(),
-                ImageFormat.YUV_420_888,
-                30);
 
         // Open the camera.
         CameraManager cameraManager = CameraUtils.getCameraManager(activity);
@@ -909,8 +904,10 @@ class Camera
             if(videoCaptureSettings.videoBitrate != null){
                 videoBitrate = videoCaptureSettings.videoBitrate;
             }
-            videoEncoder = new VideoEncoder(captureFile.getAbsolutePath(), resolutionFeature.getCaptureSize().getWidth(), resolutionFeature.getCaptureSize().getHeight(), recordingFps, videoBitrate);
+            videoEncoder = new VideoEncoder(resolutionFeature.getCaptureSize().getWidth(), resolutionFeature.getCaptureSize().getHeight(), recordingFps, videoBitrate);
             videoEncoder.setup();
+            mCurrentVideoFileWriter = new VideoFileWriter(captureFile.getAbsolutePath(), videoEncoder);
+            mCurrentVideoFileWriter.start();
             videoEncoder.start();
         } catch (IOException | SecurityException e) {
             throw new Messages.FlutterError("cannotCreateFile", e.getMessage(), null);
@@ -959,6 +956,26 @@ class Camera
         return path;
     }
 
+    public String chunkVideoRecording(){
+        if (!recordingVideo) {
+            return "";
+        }
+        String currentCapturePath = captureFile.getAbsolutePath();
+        try {
+            final File outputDir = applicationContext.getCacheDir();
+            captureFile = File.createTempFile("REC", ".mp4", outputDir);
+            mCurrentVideoFileWriter.finish();
+            mCurrentVideoFileWriter.join();
+            captureFile = File.createTempFile("REC", ".mp4", outputDir);
+            mCurrentVideoFileWriter = new VideoFileWriter(captureFile.getAbsolutePath(), videoEncoder);
+            mCurrentVideoFileWriter.start();
+        } catch (InterruptedException| IOException e) {
+            throw new Messages.FlutterError("chunkingVideoEncodingFailed", e.getMessage(), null);
+        }
+        Log.d("AndroidCamera", "Video recording chunked");
+        return currentCapturePath;
+    }
+
     public String stopChunkableVideoRecording() {
         // TODO: change to chunkable
         if (!recordingVideo) {
@@ -985,6 +1002,8 @@ class Camera
         try {
             videoEncoder.shutDown();
             videoEncoder.join();
+            mCurrentVideoFileWriter.finish();
+            mCurrentVideoFileWriter.join();
         } catch (InterruptedException e) {
             throw new Messages.FlutterError("videoEncodingFailed", e.getMessage(), null);
         }
@@ -1439,10 +1458,6 @@ class Camera
         if (imageStreamReader != null) {
             imageStreamReader.close();
             imageStreamReader = null;
-        }
-        if (videoEncoderImageReader != null) {
-            videoEncoderImageReader.close();
-            videoEncoderImageReader = null;
         }
         if (mediaRecorder != null) {
             mediaRecorder.reset();

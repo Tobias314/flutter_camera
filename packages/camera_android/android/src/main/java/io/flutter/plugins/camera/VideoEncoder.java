@@ -7,6 +7,8 @@ import android.view.Surface;
 import android.util.Log;
 
 import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -34,19 +36,17 @@ class VideoEncoder extends Thread {
     final long mTimeoutUsec;
     boolean mIsSetup = false;
     private MediaFormat mEncodedFormat;
-    private Queue<EncodedData> mVideoQueue = new LinkedList<>();
     private MediaMuxer mMuxer;
-    private String mFilePath;
     private int mVideoTrack = -1;
+    BlockingQueue<EncodedData> mEncodedDataQueue = new LinkedBlockingQueue<EncodedData>();
 
-    public VideoEncoder(String filePath, int width, int height, int fps, int bitrate) {
+    public VideoEncoder(int width, int height, int fps, int bitrate) {
         mWidth = width;
         mHeight = height;
         mFps = fps;
         mBitrate = bitrate;
         mBufferInfo = new MediaCodec.BufferInfo();
         mTimeoutUsec = 10000l;
-        mFilePath = filePath;
     }
 
     public void shutDown() {
@@ -62,10 +62,8 @@ class VideoEncoder extends Thread {
         try {
             while (mRunning) {
                 encode();
-                write();
             }
             encode();
-            write();
         } finally {
             release();
         }
@@ -101,7 +99,7 @@ class VideoEncoder extends Thread {
                 }
 
                 if (mBufferInfo.size != 0) {
-                   mVideoQueue.add(new EncodedData(encodedData, mBufferInfo));
+                   mEncodedDataQueue.add(new EncodedData(encodedData, mBufferInfo));
                 }
 
                 mCodec.releaseOutputBuffer(encoderStatus, false);
@@ -114,42 +112,22 @@ class VideoEncoder extends Thread {
         }
     }
 
-    void write() {
-        if (mVideoQueue.isEmpty()) {
-            return;
-        }
-
-        try {
-            if (mMuxer == null) {
-                mMuxer = new MediaMuxer(mFilePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
-                mVideoTrack = mMuxer.addTrack(mEncodedFormat);
-                mMuxer.start();
-            }
-            while (!mVideoQueue.isEmpty()) {
-                EncodedData data = mVideoQueue.poll();
-                ByteBuffer buf = data.byteBuffer;
-                MediaCodec.BufferInfo info = data.bufferInfo;
-                Log.d("VideoEncoder2", "SAVE " + " flags=0x" + Integer.toHexString(info.flags));
-                mMuxer.writeSampleData(mVideoTrack, buf, info);
-            }
-            ;
-        } catch (IOException ioe) {
-            Log.w("VideoEncoder2", "muxer failed", ioe);
-        }
-    }
-
     void release() {
         mCodec.stop();
         mCodec.release();
         mSurface.release();
-        if (mMuxer != null) {
-            mMuxer.stop();
-            mMuxer.release();
-        }
     }
 
     Surface getSurface() {
         return mSurface;
+    }
+
+    BlockingQueue<EncodedData> getEncodedDataQueue() {
+        return mEncodedDataQueue;
+    }
+
+    MediaFormat getEncodedFormat() {
+        return mEncodedFormat;
     }
 
     void setup() {
