@@ -166,10 +166,12 @@ class Camera
 
     private VideoEncoder videoEncoder;
     private VideoFileWriter mCurrentVideoFileWriter;
+    private ImageReader videoImageReader;
 
     Messages.Result<String> flutterResult;
 
     private Integer recordingFps;
+
     /**
      * A CameraDeviceWrapper implementation that forwards calls to a CameraDevice.
      */
@@ -401,7 +403,8 @@ class Camera
                         cameraDevice = new DefaultCameraDeviceWrapper(device);
                         try {
                             startPreview();
-                            if (!recordingVideo) { // only send initialization if we werent already recording and switching cameras
+                            if (!recordingVideo) { // only send initialization if we werent already recording and
+                                                   // switching cameras
                                 dartMessenger.sendCameraInitializedEvent(
                                         resolutionFeature.getPreviewSize().getWidth(),
                                         resolutionFeature.getPreviewSize().getHeight(),
@@ -617,10 +620,11 @@ class Camera
     }
 
     private void startCapture(boolean record, boolean stream) throws CameraAccessException {
-        startCapture(record, stream, null, null);
+        startCapture(record, stream, null);
     }
 
-    private void startCapture(boolean record, boolean stream, ImageReader imageReader, Surface surface) throws CameraAccessException {
+    private void startCapture(boolean record, boolean stream, List<Surface> additionalSurfaces)
+            throws CameraAccessException {
         List<Surface> surfaces = new ArrayList<>();
         Runnable successCallback = null;
         if (record) {
@@ -630,12 +634,10 @@ class Camera
         if (stream && imageStreamReader != null) {
             surfaces.add(imageStreamReader.getSurface());
         }
-
-        if (imageReader != null) {
-            surfaces.add(imageReader.getSurface());
-        }
-        if (surface != null) {
-            surfaces.add(surface);
+        if (additionalSurfaces != null) {
+            for (Surface surface : additionalSurfaces) {
+                surfaces.add(surface);
+            }
         }
 
         // Add pictureImageReader surface to allow for still capture
@@ -901,19 +903,34 @@ class Camera
             captureFile = File.createTempFile("REC", ".mp4", outputDir);
             final ResolutionFeature resolutionFeature = cameraFeatures.getResolution();
             int videoBitrate = 100000;
-            if(videoCaptureSettings.videoBitrate != null){
+            if (videoCaptureSettings.videoBitrate != null) {
                 videoBitrate = videoCaptureSettings.videoBitrate;
             }
-            videoEncoder = new VideoEncoder(resolutionFeature.getCaptureSize().getWidth(), resolutionFeature.getCaptureSize().getHeight(), recordingFps, videoBitrate);
+            int width = resolutionFeature.getCaptureSize().getWidth();
+            int height = resolutionFeature.getCaptureSize().getHeight();
+            videoEncoder = new VideoEncoder(width, height, recordingFps, videoBitrate);
             videoEncoder.setup();
             mCurrentVideoFileWriter = new VideoFileWriter(captureFile.getAbsolutePath(), videoEncoder);
             mCurrentVideoFileWriter.start();
             videoEncoder.start();
+            videoImageReader = ImageReader.newInstance(width, height, ImageFormat.PRIVATE, 2);
+            videoImageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener(){
+                @Override
+                public void onImageAvailable(ImageReader reader) {
+                    Image image = reader.acquireLatestImage();
+                    if (image == null) {
+                        return;
+                    }
+                    Log.d("AndroidCamera", "Video frame captured" + String.valueOf(System.currentTimeMillis()));
+                    videoEncoder.inputFrameCount++;
+                    image.close();
+                }
+            }, backgroundHandler);
         } catch (IOException | SecurityException e) {
             throw new Messages.FlutterError("cannotCreateFile", e.getMessage(), null);
         }
         try {
-            startCapture(false, false, null, videoEncoder.getSurface());
+            startCapture(false, false, Arrays.asList(videoEncoder.getSurface(), videoImageReader.getSurface()));
         } catch (CameraAccessException e) {
             // TODO: change to chunkable
             recordingVideo = false;
@@ -956,7 +973,7 @@ class Camera
         return path;
     }
 
-    public String chunkVideoRecording(){
+    public String chunkVideoRecording() {
         if (!recordingVideo) {
             return "";
         }
@@ -969,7 +986,7 @@ class Camera
             captureFile = File.createTempFile("REC", ".mp4", outputDir);
             mCurrentVideoFileWriter = new VideoFileWriter(captureFile.getAbsolutePath(), videoEncoder);
             mCurrentVideoFileWriter.start();
-        } catch (InterruptedException| IOException e) {
+        } catch (InterruptedException | IOException e) {
             throw new Messages.FlutterError("chunkingVideoEncodingFailed", e.getMessage(), null);
         }
         Log.d("AndroidCamera", "Video recording chunked");
@@ -1329,7 +1346,8 @@ class Camera
         // get rotation for rendered video
         final PlatformChannel.DeviceOrientation lockedOrientation = cameraFeatures.getSensorOrientation()
                 .getLockedCaptureOrientation();
-        DeviceOrientationManager orientationManager = cameraFeatures.getSensorOrientation().getDeviceOrientationManager();
+        DeviceOrientationManager orientationManager = cameraFeatures.getSensorOrientation()
+                .getDeviceOrientationManager();
 
         int rotation = 0;
         if (orientationManager != null) {
