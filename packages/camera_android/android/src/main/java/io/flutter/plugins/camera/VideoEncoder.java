@@ -40,6 +40,9 @@ class VideoEncoder extends Thread {
     private int mVideoTrack = -1;
     BlockingQueue<EncodedData> mEncodedDataQueue = new LinkedBlockingQueue<EncodedData>();
 
+    volatile int inputFrameCount = 0;
+    volatile int encodedFrameCount = 0;
+
     public VideoEncoder(int width, int height, int fps, int bitrate) {
         mWidth = width;
         mHeight = height;

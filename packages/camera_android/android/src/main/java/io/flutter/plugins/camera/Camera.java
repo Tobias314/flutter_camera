@@ -914,7 +914,7 @@ class Camera
             mCurrentVideoFileWriter.start();
             videoEncoder.start();
             videoImageReader = ImageReader.newInstance(width, height, ImageFormat.PRIVATE, 2);
-            videoImageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener(){
+            videoImageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
                 @Override
                 public void onImageAvailable(ImageReader reader) {
                     Image image = reader.acquireLatestImage();
