@@ -106,6 +106,12 @@ class PlatformMediaSettings {
   final bool enableAudio;
 }
 
+class VideoChunk {
+  VideoChunk({required this.path, required this.timestamps});
+  final String path;
+  final List<int> timestamps;
+}
+
 /// Pigeon equivalent of [ImageFormatGroup].
 enum PlatformImageFormatGroup {
   /// The default for Android.
@@ -161,10 +167,10 @@ abstract class CameraApi {
   String stopVideoRecording();
 
   // Finishes up the current .mp4 file and starts a new one without stopping the recording
-  String chunkVideoRecording();
+  VideoChunk chunkVideoRecording();
 
   /// Ends chunkable video recording on the camera with the given ID.
-  String stopChunkableVideoRecording();
+  VideoChunk stopChunkableVideoRecording();
 
   /// Pauses video recording on the camera with the given ID.
   void pauseVideoRecording();

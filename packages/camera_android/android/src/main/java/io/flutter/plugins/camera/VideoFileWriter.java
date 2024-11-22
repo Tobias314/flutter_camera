@@ -5,12 +5,16 @@ import java.util.concurrent.LinkedBlockingQueue;
 import android.media.MediaCodec;
 import java.nio.ByteBuffer;
 import java.io.IOException;
+import java.util.List;
+import java.util.ArrayList;
 
 import java.util.concurrent.BlockingQueue;
 
 public class VideoFileWriter extends Thread{
 
     volatile boolean mRunning = true;
+    protected List<Long> frameTimestamps = new ArrayList<Long>();
+
     private String mFilePath;
     private VideoEncoder mEncoder;
     private int mVideoTrack = -1;
@@ -23,6 +27,7 @@ public class VideoFileWriter extends Thread{
         mFilePath = filePath;
         mEncoder = encoder;
         mEncodedDataQueue = mEncoder.getEncodedDataQueue();
+        
     }
 
     public void finish() {
@@ -53,6 +58,8 @@ public class VideoFileWriter extends Thread{
             }
             while (!mEncodedDataQueue.isEmpty()) {
                 EncodedData data = mEncodedDataQueue.poll();
+                frameTimestamps.add(data.bufferInfo.presentationTimeUs / 1000);
+                Log.d(TAG, "frameTimestamp: " + data.bufferInfo.presentationTimeUs);
                 ByteBuffer buf = data.byteBuffer;
                 MediaCodec.BufferInfo info = data.bufferInfo;
                 Log.d(TAG, "SAVE " + " flags=0x" + Integer.toHexString(info.flags));

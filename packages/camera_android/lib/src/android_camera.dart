@@ -22,7 +22,7 @@ class AndroidCamera extends CameraPlatform {
   /// Creates a new [CameraPlatform] instance.
   AndroidCamera({@visibleForTesting CameraApi? hostApi})
       : _hostApi = hostApi ?? CameraApi() {
-    logger.d("Hello from AndroidCamera");
+    logger.d('Hello from AndroidCamera');
   }
 
   /// Registers this class as the default instance of [CameraPlatform].
@@ -226,9 +226,8 @@ class AndroidCamera extends CameraPlatform {
   }
 
   @override
-  Future<XFile> chunkVideoRecording(int cameraId) async {
-    final String path = await _hostApi.chunkVideoRecording();
-    return XFile(path);
+  Future<VideoChunk> chunkVideoRecording(int cameraId) async {
+    return await _hostApi.chunkVideoRecording();
   }
 
   @override
@@ -238,9 +237,8 @@ class AndroidCamera extends CameraPlatform {
   }
 
   @override
-  Future<XFile> stopChunkableVideoRecording(int cameraId) async {
-    final String path = await _hostApi.stopChunkableVideoRecording();
-    return XFile(path);
+  Future<VideoChunk> stopChunkableVideoRecording(int cameraId) async {
+    return await _hostApi.stopChunkableVideoRecording();
   }
 
   @override

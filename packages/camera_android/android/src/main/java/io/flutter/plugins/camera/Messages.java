@@ -796,6 +796,94 @@ public class Messages {
     }
   }
 
+  /** Generated class from Pigeon that represents data sent in messages. */
+  public static final class VideoChunk {
+    private @NonNull String path;
+
+    public @NonNull String getPath() {
+      return path;
+    }
+
+    public void setPath(@NonNull String setterArg) {
+      if (setterArg == null) {
+        throw new IllegalStateException("Nonnull field \"path\" is null.");
+      }
+      this.path = setterArg;
+    }
+
+    private @NonNull List<Long> timestamps;
+
+    public @NonNull List<Long> getTimestamps() {
+      return timestamps;
+    }
+
+    public void setTimestamps(@NonNull List<Long> setterArg) {
+      if (setterArg == null) {
+        throw new IllegalStateException("Nonnull field \"timestamps\" is null.");
+      }
+      this.timestamps = setterArg;
+    }
+
+    /** Constructor is non-public to enforce null safety; use Builder. */
+    VideoChunk() {}
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) { return true; }
+      if (o == null || getClass() != o.getClass()) { return false; }
+      VideoChunk that = (VideoChunk) o;
+      return path.equals(that.path) && timestamps.equals(that.timestamps);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(path, timestamps);
+    }
+
+    public static final class Builder {
+
+      private @Nullable String path;
+
+      @CanIgnoreReturnValue
+      public @NonNull Builder setPath(@NonNull String setterArg) {
+        this.path = setterArg;
+        return this;
+      }
+
+      private @Nullable List<Long> timestamps;
+
+      @CanIgnoreReturnValue
+      public @NonNull Builder setTimestamps(@NonNull List<Long> setterArg) {
+        this.timestamps = setterArg;
+        return this;
+      }
+
+      public @NonNull VideoChunk build() {
+        VideoChunk pigeonReturn = new VideoChunk();
+        pigeonReturn.setPath(path);
+        pigeonReturn.setTimestamps(timestamps);
+        return pigeonReturn;
+      }
+    }
+
+    @NonNull
+    ArrayList<Object> toList() {
+      ArrayList<Object> toListResult = new ArrayList<>(2);
+      toListResult.add(path);
+      toListResult.add(timestamps);
+      return toListResult;
+    }
+
+    static @NonNull VideoChunk fromList(@NonNull ArrayList<Object> pigeonVar_list) {
+      VideoChunk pigeonResult = new VideoChunk();
+      Object path = pigeonVar_list.get(0);
+      pigeonResult.setPath((String) path);
+      Object timestamps = pigeonVar_list.get(1);
+      pigeonResult.setTimestamps((List<Long>) timestamps);
+      return pigeonResult;
+    }
+  }
+
   private static class PigeonCodec extends StandardMessageCodec {
     public static final PigeonCodec INSTANCE = new PigeonCodec();
 
@@ -842,6 +930,8 @@ public class Messages {
           return PlatformPoint.fromList((ArrayList<Object>) readValue(buffer));
         case (byte) 140:
           return PlatformMediaSettings.fromList((ArrayList<Object>) readValue(buffer));
+        case (byte) 141:
+          return VideoChunk.fromList((ArrayList<Object>) readValue(buffer));
         default:
           return super.readValueOfType(type, buffer);
       }
@@ -885,6 +975,9 @@ public class Messages {
       } else if (value instanceof PlatformMediaSettings) {
         stream.write(140);
         writeValue(stream, ((PlatformMediaSettings) value).toList());
+      } else if (value instanceof VideoChunk) {
+        stream.write(141);
+        writeValue(stream, ((VideoChunk) value).toList());
       } else {
         super.writeValue(stream, value);
       }
@@ -955,10 +1048,10 @@ public class Messages {
     String stopVideoRecording();
 
     @NonNull 
-    String chunkVideoRecording();
+    VideoChunk chunkVideoRecording();
     /** Ends chunkable video recording on the camera with the given ID. */
     @NonNull 
-    String stopChunkableVideoRecording();
+    VideoChunk stopChunkableVideoRecording();
     /** Pauses video recording on the camera with the given ID. */
     void pauseVideoRecording();
     /** Resumes previously paused video recording on the camera with the given ID. */
@@ -1268,7 +1361,7 @@ public class Messages {
               (message, reply) -> {
                 ArrayList<Object> wrapped = new ArrayList<>();
                 try {
-                  String output = api.chunkVideoRecording();
+                  VideoChunk output = api.chunkVideoRecording();
                   wrapped.add(0, output);
                 }
  catch (Throwable exception) {
@@ -1289,7 +1382,7 @@ public class Messages {
               (message, reply) -> {
                 ArrayList<Object> wrapped = new ArrayList<>();
                 try {
-                  String output = api.stopChunkableVideoRecording();
+                  VideoChunk output = api.stopChunkableVideoRecording();
                   wrapped.add(0, output);
                 }
  catch (Throwable exception) {

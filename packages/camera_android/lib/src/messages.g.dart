@@ -251,6 +251,32 @@ class PlatformMediaSettings {
   }
 }
 
+class VideoChunk {
+  VideoChunk({
+    required this.path,
+    required this.timestamps,
+  });
+
+  String path;
+
+  List<int> timestamps;
+
+  Object encode() {
+    return <Object?>[
+      path,
+      timestamps,
+    ];
+  }
+
+  static VideoChunk decode(Object result) {
+    result as List<Object?>;
+    return VideoChunk(
+      path: result[0]! as String,
+      timestamps: (result[1] as List<Object?>?)!.cast<int>(),
+    );
+  }
+}
+
 
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
@@ -295,6 +321,9 @@ class _PigeonCodec extends StandardMessageCodec {
     }    else if (value is PlatformMediaSettings) {
       buffer.putUint8(140);
       writeValue(buffer, value.encode());
+    }    else if (value is VideoChunk) {
+      buffer.putUint8(141);
+      writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
     }
@@ -334,6 +363,8 @@ class _PigeonCodec extends StandardMessageCodec {
         return PlatformPoint.decode(readValue(buffer)!);
       case 140: 
         return PlatformMediaSettings.decode(readValue(buffer)!);
+      case 141: 
+        return VideoChunk.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
     }
@@ -607,7 +638,7 @@ class CameraApi {
     }
   }
 
-  Future<String> chunkVideoRecording() async {
+  Future<VideoChunk> chunkVideoRecording() async {
     final String pigeonVar_channelName = 'dev.flutter.pigeon.camera_android.CameraApi.chunkVideoRecording$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
@@ -630,12 +661,12 @@ class CameraApi {
         message: 'Host platform returned null value for non-null return value.',
       );
     } else {
-      return (pigeonVar_replyList[0] as String?)!;
+      return (pigeonVar_replyList[0] as VideoChunk?)!;
     }
   }
 
   /// Ends chunkable video recording on the camera with the given ID.
-  Future<String> stopChunkableVideoRecording() async {
+  Future<VideoChunk> stopChunkableVideoRecording() async {
     final String pigeonVar_channelName = 'dev.flutter.pigeon.camera_android.CameraApi.stopChunkableVideoRecording$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
       pigeonVar_channelName,
@@ -658,7 +689,7 @@ class CameraApi {
         message: 'Host platform returned null value for non-null return value.',
       );
     } else {
-      return (pigeonVar_replyList[0] as String?)!;
+      return (pigeonVar_replyList[0] as VideoChunk?)!;
     }
   }
 

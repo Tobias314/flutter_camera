@@ -891,12 +891,7 @@ class Camera
 
     public void startChunkableVideoRecording() {
         prepareRecording();
-
-        // if (imageStreamChannel != null) {
-        // setStreamHandler(imageStreamChannel);
-        // }
         initialCameraFacing = cameraProperties.getLensFacing();
-        // TODO: change to chunkable
         recordingVideo = true;
         final File outputDir = applicationContext.getCacheDir();
         try {
@@ -912,27 +907,13 @@ class Camera
             videoEncoder.setup();
             mCurrentVideoFileWriter = new VideoFileWriter(captureFile.getAbsolutePath(), videoEncoder);
             mCurrentVideoFileWriter.start();
-            videoEncoder.start();
-            videoImageReader = ImageReader.newInstance(width, height, ImageFormat.PRIVATE, 2);
-            videoImageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
-                @Override
-                public void onImageAvailable(ImageReader reader) {
-                    Image image = reader.acquireLatestImage();
-                    if (image == null) {
-                        return;
-                    }
-                    Log.d("AndroidCamera", "Video frame captured" + String.valueOf(System.currentTimeMillis()));
-                    videoEncoder.inputFrameCount++;
-                    image.close();
-                }
-            }, backgroundHandler);
+            videoEncoder.start();        
         } catch (IOException | SecurityException e) {
             throw new Messages.FlutterError("cannotCreateFile", e.getMessage(), null);
         }
         try {
-            startCapture(false, false, Arrays.asList(videoEncoder.getSurface(), videoImageReader.getSurface()));
+            startCapture(false, false, Arrays.asList(videoEncoder.getSurface()));
         } catch (CameraAccessException e) {
-            // TODO: change to chunkable
             recordingVideo = false;
             captureFile = null;
             throw new Messages.FlutterError("videoRecordingFailed", e.getMessage(), null);
@@ -973,16 +954,18 @@ class Camera
         return path;
     }
 
-    public String chunkVideoRecording() {
+    public Messages.VideoChunk chunkVideoRecording() {
         if (!recordingVideo) {
-            return "";
+            return new Messages.VideoChunk.Builder().setPath("").setTimestamps(new ArrayList<Long>()).build();
         }
         String currentCapturePath = captureFile.getAbsolutePath();
+        List<Long> timestamps; 
         try {
             final File outputDir = applicationContext.getCacheDir();
             captureFile = File.createTempFile("REC", ".mp4", outputDir);
             mCurrentVideoFileWriter.finish();
             mCurrentVideoFileWriter.join();
+            timestamps = mCurrentVideoFileWriter.frameTimestamps;
             captureFile = File.createTempFile("REC", ".mp4", outputDir);
             mCurrentVideoFileWriter = new VideoFileWriter(captureFile.getAbsolutePath(), videoEncoder);
             mCurrentVideoFileWriter.start();
@@ -990,13 +973,12 @@ class Camera
             throw new Messages.FlutterError("chunkingVideoEncodingFailed", e.getMessage(), null);
         }
         Log.d("AndroidCamera", "Video recording chunked");
-        return currentCapturePath;
+        return new Messages.VideoChunk.Builder().setPath(currentCapturePath).setTimestamps(timestamps).build();
     }
 
-    public String stopChunkableVideoRecording() {
-        // TODO: change to chunkable
+    public Messages.VideoChunk stopChunkableVideoRecording() {
         if (!recordingVideo) {
-            return "";
+            return new Messages.VideoChunk.Builder().setPath("").setTimestamps(new ArrayList<Long>()).build();
         }
         // Re-create autofocus feature so it's using continuous capture focus mode now.
         cameraFeatures.setAutoFocus(
@@ -1026,8 +1008,9 @@ class Camera
         }
         Log.d("AndroidCamera", "Video recording stopped");
         String path = captureFile.getAbsolutePath();
+        List<Long> timestamps = mCurrentVideoFileWriter.frameTimestamps;
         captureFile = null;
-        return path;
+        return new Messages.VideoChunk.Builder().setPath(path).setTimestamps(timestamps).build();
     }
 
     public void pauseVideoRecording() {
