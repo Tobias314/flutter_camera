@@ -39,6 +39,7 @@ class VideoEncoder extends Thread {
     private MediaMuxer mMuxer;
     private int mVideoTrack = -1;
     BlockingQueue<EncodedData> mEncodedDataQueue = new LinkedBlockingQueue<EncodedData>();
+    BlockingQueue<Long> frameTimestampsQueue = new LinkedBlockingQueue<Long>();
 
     public VideoEncoder(int width, int height, int fps, int bitrate) {
         mWidth = width;

@@ -58,15 +58,17 @@ public class VideoFileWriter extends Thread{
             }
             while (!mEncodedDataQueue.isEmpty()) {
                 EncodedData data = mEncodedDataQueue.poll();
-                frameTimestamps.add(data.bufferInfo.presentationTimeUs / 1000);
-                Log.d(TAG, "frameTimestamp: " + data.bufferInfo.presentationTimeUs);
+                long frameTimestamp = mEncoder.frameTimestampsQueue.take();
+                frameTimestamps.add(frameTimestamp);
+                //frameTimestamps.add(data.bufferInfo.presentationTimeUs / 1000);
                 ByteBuffer buf = data.byteBuffer;
                 MediaCodec.BufferInfo info = data.bufferInfo;
-                Log.d(TAG, "SAVE " + " flags=0x" + Integer.toHexString(info.flags));
                 mMuxer.writeSampleData(mVideoTrack, buf, info);
             }
         } catch (IOException ioe) {
             Log.w(TAG, "muxer failed", ioe);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 

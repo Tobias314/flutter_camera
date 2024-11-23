@@ -12,6 +12,10 @@ import android.hardware.camera2.TotalCaptureResult;
 import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+
 import io.flutter.plugins.camera.types.CameraCaptureProperties;
 import io.flutter.plugins.camera.types.CaptureTimeoutsWrapper;
 
@@ -26,6 +30,8 @@ class CameraCaptureCallback extends CaptureCallback {
   private final CaptureTimeoutsWrapper captureTimeouts;
   private final CameraCaptureProperties captureProps;
 
+  private final Camera camera;
+
   // Lookup keys for state; overrideable for unit tests since Mockito can't mock them.
   @VisibleForTesting @NonNull
   CaptureResult.Key<Integer> aeStateKey = CaptureResult.CONTROL_AE_STATE;
@@ -36,11 +42,13 @@ class CameraCaptureCallback extends CaptureCallback {
   private CameraCaptureCallback(
       @NonNull CameraCaptureStateListener cameraStateListener,
       @NonNull CaptureTimeoutsWrapper captureTimeouts,
-      @NonNull CameraCaptureProperties captureProps) {
+      @NonNull CameraCaptureProperties captureProps,
+  Camera camera) {
     cameraState = CameraState.STATE_PREVIEW;
     this.cameraStateListener = cameraStateListener;
     this.captureTimeouts = captureTimeouts;
     this.captureProps = captureProps;
+    this.camera = camera;
   }
 
   /**
@@ -54,8 +62,9 @@ class CameraCaptureCallback extends CaptureCallback {
   public static CameraCaptureCallback create(
       @NonNull CameraCaptureStateListener cameraStateListener,
       @NonNull CaptureTimeoutsWrapper captureTimeouts,
-      @NonNull CameraCaptureProperties captureProps) {
-    return new CameraCaptureCallback(cameraStateListener, captureTimeouts, captureProps);
+      @NonNull CameraCaptureProperties captureProps,
+      Camera camera) {
+    return new CameraCaptureCallback(cameraStateListener, captureTimeouts, captureProps, camera);
   }
 
   /**
@@ -175,6 +184,22 @@ class CameraCaptureCallback extends CaptureCallback {
       @NonNull CaptureRequest request,
       @NonNull TotalCaptureResult result) {
     process(result);
+  }
+
+  @Override
+  public  void onCaptureStarted(CameraCaptureSession session,
+                                CaptureRequest request,
+                                long timestamp,
+                                long frameNumber){
+    //long timestampMicros = ChronoUnit.MICROS.between(Instant.EPOCH, Instant.now());
+    if(camera != null && camera.videoEncoder != null) {
+      long timestampMicros = System.currentTimeMillis() * 1000;
+        try {
+            camera.videoEncoder.frameTimestampsQueue.put(timestampMicros);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
   }
 
   /** An interface that describes the different state changes implementers can be informed about. */

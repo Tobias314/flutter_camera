@@ -164,7 +164,7 @@ class Camera
      */
     private CameraCaptureProperties captureProps;
 
-    private VideoEncoder videoEncoder;
+    protected VideoEncoder videoEncoder;
     private VideoFileWriter mCurrentVideoFileWriter;
     private ImageReader videoImageReader;
 
@@ -290,7 +290,7 @@ class Camera
         // Create capture callback.
         captureTimeouts = new CaptureTimeoutsWrapper(3000, 3000);
         captureProps = new CameraCaptureProperties();
-        cameraCaptureCallback = CameraCaptureCallback.create(this, captureTimeouts, captureProps);
+        cameraCaptureCallback = CameraCaptureCallback.create(this, captureTimeouts, captureProps, this);
 
         startBackgroundThread();
     }
