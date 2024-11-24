@@ -897,9 +897,10 @@ class Camera
         try {
             captureFile = File.createTempFile("REC", ".mp4", outputDir);
             final ResolutionFeature resolutionFeature = cameraFeatures.getResolution();
-            int videoBitrate = 100000;
+            int videoBitrate = 1000000;
             if (videoCaptureSettings.videoBitrate != null) {
                 videoBitrate = videoCaptureSettings.videoBitrate;
+                Log.d("AndroidCamera", "Video bitrate set to " + videoBitrate);
             }
             int width = resolutionFeature.getCaptureSize().getWidth();
             int height = resolutionFeature.getCaptureSize().getHeight();

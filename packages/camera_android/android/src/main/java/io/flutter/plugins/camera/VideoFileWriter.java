@@ -37,13 +37,13 @@ public class VideoFileWriter extends Thread{
     @Override
     public void run() {
         Log.d("VideoEncoder2", "run...: ");
-        try {
-            while (mRunning) {
-                write();
-            }
-        } finally {
-            release();
+        //try {
+        while (mRunning) {
+            write();
         }
+        //} finally {
+        release();
+        //}
     }
     void write() {
         if (mEncodedDataQueue.isEmpty()) {

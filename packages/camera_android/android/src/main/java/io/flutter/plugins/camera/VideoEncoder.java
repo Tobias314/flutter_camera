@@ -144,7 +144,7 @@ class VideoEncoder extends Thread {
                 MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
         format.setInteger(MediaFormat.KEY_BIT_RATE, mBitrate);
         format.setInteger(MediaFormat.KEY_FRAME_RATE, mFps);
-        format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 1);// TODO
+        format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 0);// TODO
 
         try {
             mCodec = MediaCodec.createEncoderByType("video/avc");
