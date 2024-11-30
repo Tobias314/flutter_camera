@@ -227,7 +227,7 @@ class AndroidCamera extends CameraPlatform {
 
   @override
   Future<VideoChunk> chunkVideoRecording(int cameraId) async {
-    return await _hostApi.chunkVideoRecording();
+    return _hostApi.chunkVideoRecording();
   }
 
   @override
@@ -238,7 +238,7 @@ class AndroidCamera extends CameraPlatform {
 
   @override
   Future<VideoChunk> stopChunkableVideoRecording(int cameraId) async {
-    return await _hostApi.stopChunkableVideoRecording();
+    return _hostApi.stopChunkableVideoRecording();
   }
 
   @override
